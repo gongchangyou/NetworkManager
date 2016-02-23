@@ -1,0 +1,458 @@
+﻿using UnityEngine;
+using System.Collections;
+
+namespace App.Network {
+
+	public enum Error
+	{
+		None=0,
+
+		// --------------------------------------
+
+		// (0000) 汎用的なクライアントエラー.
+		Unknown=100000,
+		TimeOut=100001,
+		ForceTimeOut=100002,
+
+		// (1000) 送信前に検出したクライアントエラー.
+		InvalidURL=101001,
+		NullRequest=101002,
+
+		// (2000) 受信後に検出したクライアントエラー.
+		DecodeFailed=102001,
+		EmptyRecord=102002,
+
+		// (5000) Asset系クライアントエラー.
+		AssetNotFound=105001,
+		AssetLoadFailed=105002,
+		
+		// (7000) 暗号化系クライアントエラー.
+		DecryptFailed=107001,
+		DecryptResponceIsNull=107002,
+		DecryptFailedByDefaultKey=107002,
+		UncompressFailed=107011,
+		SignatureIsNull=107021,
+		VerifySignatureFailed=107022,
+		InvalidSignature=107023,
+
+		// (9000) デバッグ用エラー.
+		DebugForceError=109001,
+		
+		// --------------------------------------
+
+		// HTTPエラー.
+		DetectHttpError=200000, // +エラーコード（下三桁）.
+
+		// Asset系 HTTPエラー.
+		DetectAssetHttpError=300000, // +エラーコード（下三桁）.
+
+		// --------------------------------------
+
+		//記述方法
+		//ERR_[キー名],//[エラーコード],//[エラー内容]
+		//エラーコード:3桁(controller単位) 3桁(詳細)
+		//6桁目はクライアントで予約
+		//エラーコードはマイナスは使わない
+		//エラー内容:基本的に画面には表示しない、デバッグ、サポートのための文言(翻訳不要とする)
+		///admin/error/list画面にてエラーが出ずにエラーリストが表示されるのを確認すること
+		
+		//共通系(000)
+		ERR_SERVER_MAINTENANCE=000001,//メンテナンスモード
+		
+		//共通系(001)
+		ERR_UNKNOWN=001001,//予期せぬエラーが発生しました
+		ERR_MAINTENANCE=001002,//現在メンテナンス中です
+		ERR_UPDATE_FORCE=001003,//アップデートしてください
+		ERR_AUTH_FAILED=001004,//認証に失敗しました
+		ERR_DATA_NOT_SET=001005,//通信データがセットされていません
+		ERR_CRYSTAL_USE_ERR=001006,//ジュエル消費エラー
+		ERR_CRYSTAL_USED_ERR=001007,//ジュエル消費済みエラー
+		ERR_CRYSTAL_NOT_ENOUGH=001008,//ジュエル足りないエラー
+		ERR_CRYSTAL_POSSESSION_ERR=001009,//ジュエル所持数エラー
+		ERR_EPISODE=001010,//エピソード０エラー
+		
+		//AjaxControllerAbstract(002)
+		ERR_BAN_USER=002001,//BANユーザです
+		ERR_RESIGNED_USER=002002,//退会したユーザです
+		
+		//RegisterController(003)
+		ERR_REGISTER_ALREADY_REGISTRY=003001,//既に登録されているユーザーです。
+		ERR_REGISTER_EMPTY_DEVICE_ID=003002,//デバイスIDが存在しません。
+		ERR_REGISTER_INVALID_DEVICE_ID=003003,//不正なデバイスIDです。
+		ERR_REGISTER_TIMEOUT_DEVICE_ID=003004,//登録待機時間を超えました。
+		ERR_REGISTER_EMPTY_NAME=003005,//ユーザー名が入力されていません。
+		ERR_REGISTER_NO_AGREEMENT=003006,//利用規約に同意していません。
+		ERR_REGISTER_DATA_REGIST=003007,//ユーザーデータ登録に失敗しました。
+		ERR_REGISTER_EMPTY_CARD=003008,//カードデータが存在しません。
+		ERR_REGISTER_EMPTY_EMAIL=003009,//Emailが空白です。
+		ERR_REGISTER_TOO_LONG_EMAIL=003010,//EMAILが長過ぎます。
+		ERR_REGISTER_EMPTY_PASSWORD=003011,//パスワードを入力してください。
+		ERR_REGISTER_EMPTY_PASSWORDCONFIRM=003012,//パスワード（確認）を入力してください。
+		ERR_REGISTER_TOO_SHORT_PASSWORD=003013,//パスワードが短いです。
+		ERR_REGISTER_TOO_SHORT_PASSWORD_CONFIRM=003014,//パスワード（確認）が短いです。
+		ERR_REGISTER_DIFFERENT_PASSWORD_CONFIRM_PASSWORD=003015,//パスワードを確認してください。
+		ERR_REGISTER_ADVANCED_PASSWORD_VULNERABLE_PASSWORD=003016,//パスワードが簡単すぎます。
+		ERR_REGISTER_NOT_SELECTED_SECRET_QUESTION_TYPE=003017,//質問を選択してくdさアイ。
+		ERR_REGISTER_NOT_INPUT_SECRET_QUESTION_ANSWER=003018,//答えを入力してください。
+		ERR_REGISTER_TOO_LONG_SECRET_QUESTION_ANSWER=003019,//答えが長過ぎます。
+		ERR_REGISTER_ALREADY_REGISTERED_EMAIL=003020,//既に登録されているEMAILです。
+		ERR_REGISTER_GUEST_DATA_REGIST_FAILED=003021,//ゲストデータ作成に失敗しました。
+		ERR_REGISTER_EMPTY_WEAPON=003022,//武器データが存在しません。
+
+		ERR_REGISTER_GOOGLE_VALIDATION_FALSE=003101,//不正なアクセスです
+		ERR_REGISTER_GOOGLE_STATUS_BANNED=003102,//過去にBANされたIDです
+		ERR_REGISTER_GOOGLE_INVALID_PASSWORD=003103,//パスワードが違います
+
+		ERR_WCAT_ACCOUNT_NOT_INPUT_EMAIL=003201,//EMAILを入力してください。
+		ERR_WCAT_ACCOUNT_NOT_INPUT_PASSWORD=003202,//パスワードを入力してください。
+		ERR_WCAT_ACCOUNT_LOGIN_DIFFERENT_EMAIL_OR_PASSWORD=003203,//EMAILまたはパスワードが違います。
+		ERR_WCAT_CHANGE_PASSWORD_NON_CURRENT_PASSWORD=003204,//現在のパスワードを入力してください
+		ERR_WCAT_CHANGE_PASSWORD_NON_NEW_PASSWORD=003205,//新しいパスワードを入力してください
+		ERR_WCAT_CHANGE_PASSWORD_NON_NEW_PASSWORD_CONFIRM=003206,//新しいパスワードの確認を入力してください。
+		ERR_WCAT_CHANGE_PASSWORD_TOO_SHORT=003207,//新しいパスワードは6文字以上で<BR>設定してください。
+		ERR_WCAT_CHANGE_PASSWORD_DIFFERENT_NEW_PASSWORD_CONFIRM=003208,//新しいパスワードと確認が一致しません
+		ERR_WCAT_CHANGE_PASSWORD_EQUAL_CURRENT_PASSWORD=003209,//設定されているパスワードと<BR>新パスワードに同一のものは<BR>入力できません。
+		ERR_WCAT_CHANGE_PASSWORD_DIFFERENT_PASSWORD=003210,//設定されているパスワードと<BR>入力しているパスワードが異なっています。
+		ERR_WCAT_CHANGE_SECRET_QUESTION_NOT_INPUTED_SECRET_ANSWER=003211,//秘密の質問の答えを入力してください。
+		ERR_WCAT_CHANGE_SECRET_QUESTION_NOT_SELECTED=003212,//秘密の質問を選択してください。
+		ERR_WCAT_CHANGE_SECRET_QUESTION_TOO_LONG=003213,//秘密の質問の答えは45字以内で入力してください
+		#if CN_USE_SDK_MORNINGTEC_IOS
+		ERR_WCAT_ACCOUNT_LOGIN_EMAIL_ALREADY_BIND=003300,//该邮箱已经绑定过了
+		ERR_WCAT_ACCOUNT_LOGIN_CZK_ALREADY_BIND=003301,//该晨之科账号已经绑定过了
+		#endif
+		#region China
+		ERR_NGWORD=003999,//非法的名字
+		ERR_NAME_NGWORD=001003001,//非法的名字
+		ERR_NAME_DUPLICATED=001003002,//重复的名字
+		ERR_CHANGE_NAME_REACH_LIMIT=019020,//改名次数限制
+		#endregion
+
+		//GoldController(004)
+		ERR_GOLD_SAFETY_LOCK_PASSWORD_IS_NOT_VALID=004001,//現在設定しているパスワードと<BR>一致しません
+		ERR_GOLD_CHARGE_IS_NOT_ENABLED=004002,//通信エラー（誕生日未設定、１３歳未満）。
+		ERR_GOLD_OVER_LIMIT_OF_CHARGE=004003,//課金限度額を超過するため購入できません。
+		ERR_GOLD_OVER_LIMITTER_OVERUSE=004004,//使いすぎストッパーが動作しました。<BR>購入を続けますか？
+		
+		//QuestController(005)
+		ERR_QUEST_EMPTY_WORLD_ID=005001,//ワールドIDが存在しません。
+		ERR_QUEST_EMPTY_WORLD_QUEST_DATA=005002,//ワールドクエストデータが存在しません。
+		ERR_QUEST_EMPTY_QUEST_DATA=005003,//クエストデータが存在しません。
+		ERR_QUEST_NOT_ENOUGH_STAMINA=005004,//スタミナが足りません。
+		ERR_QUEST_EMPTY_MONSTER_DATA=005005,//モンスターデータが存在しません。
+		ERR_QUEST_EMPTY_STAGE_MONSTER_DATA=005006,//ステージにモンスターデータが存在しません。
+		ERR_QUEST_UPDATE_USER_STATUS=005007,//ユーザーデータ更新に失敗しました。
+		ERR_QUEST_DATA_ERROR=005008,//クエスト取得データが不正です。
+		ERR_QUEST_UPDATE_USER_GOLD=005009,//ゴールド更新失敗です。
+		ERR_QUEST_UPDATE_USER_SOUL=005010,//ソウル更新失敗です。
+		ERR_QUEST_INVALID_DATA=005011,//不正クエストデータです。
+		ERR_QUEST_EMPTY_STAGE_MONSTER_SPAWN_DATA=005012,//ステージモンスタースポンポイントがありません。
+		ERR_QUEST_EMPTY_CRYSTAL=005013,//ジュエルを所持していません。
+		ERR_QUEST_CONTINUE_FAILED=005014,//クエストコンティニューに失敗しました。
+		ERR_QUEST_UPDATE_USER_EXP=005015,//ユーザ経験値更新失敗です。
+		ERR_QUEST_RETIRE_FAILED=005016,//クエストリタイアに失敗しました。
+		ERR_QUEST_NOT_OPEN=005017,//クエストが開催していません。
+		ERR_QUEST_UPDATE_USER_BP=005018,//BP更新失敗です。
+		ERR_QUEST_COST_OVER=005019,//デッキコストがオーバーしています。
+		ERR_QUEST_WEAPON_OVER=005020,//武器所持数がオーバーしています。
+		ERR_QUEST_NOT_FOUND_TALK=005021,//イベントトークが存在しません。
+		ERR_QUEST_NOT_OPEN_TALK=005022,//イベントトークがオープンされていません。
+		ERR_QUEST_READED=005023,//イベントトークが既読済みです。
+		ERR_QUEST_RESTRICT_VIOLATE=005024,//制限を満たしていません。
+		ERR_QUEST_ACCESSORY_OVER=005025,//アクセサリ所持数がオーバーしています。
+		
+		//DeckController(006)
+		ERR_DECK_EMPTY_DECK_NO=006001,//デッキ番号が指定されていません。
+		ERR_DECK_NOT_UPDATE=006002,//デッキが変更できません。
+		ERR_DECK_NO_SET_EQUIPMENT=006003,//更新するカードが指定されていません。
+		ERR_DECK_NO_SET_CARD=006004,//装備するカードが指定されていません。
+		ERR_DECK_NO_SET_WEAPON=006005,//装備する武器が指定されていません。
+		ERR_DECK_EMPTY_CARD_ID=006006,//カードIDが指定されていません。
+		ERR_DECK_EMPTY_WEAPON_ID=006007,//武器IDが指定されていません。
+		ERR_DECK_NOT_SELL_CARD=006008,//指定カードが売却できません。
+		ERR_DECK_NOT_COMPO_CARD=006009,//指定カードが強化できません。
+		ERR_DECK_NO_WEAPON_CATEGORY=006010,//武器カテゴリが存在しません。
+		ERR_DECK_NO_COMPO_WEAPON=006013,//指定武器が強化できません。
+		ERR_DECK_NO_EVOLVE_WEAPON=006014,//指定武器が進化できません。
+		ERR_DECK_NO_EXCEED=006015,//限界突破できません。
+		ERR_DECK_NOT_FOUND_COMPO_WEAPON=006016,//強化武器が存在しません。
+		ERR_DECK_NOT_SELL_WEAPON=006017,//指定武器が売却できません。
+		ERR_DECK_NOT_TRADE_WEAPON=006019,//Invalid RequestTrade.(e.q. expired tradeList)
+		ERR_DECK_NOT_FAVORITE_WEAPON=006020,//指定した武器をお気に入り登録出来ません。
+		ERR_DECK_NOT_TRADE_CARD=006021,//指定したキャラに交換出来ません。
+
+
+		
+		//GachaController(007)
+		ERR_GACHA_EXE_INVALID=007001,//ガチャの実行に失敗しました。
+		ERR_GACHA_EXE_FRIEND_POINT=007002,//フレンドポイントが不正です。
+		ERR_GACHA_EXE_CRYSTAL=007003,//ジュエルが不正です。
+		ERR_GACHA_EXE_CARD_OVER=007004,//所持カードが一杯です。
+		ERR_GACHA_EXE_TUTORIAL_GACHA_DONE=007005,//チュートリアルガチャを実行済みです。
+		ERR_GACHA_EXE_TUTORIAL_STEP=007006,//チュートリアルガチャのステップが不正です。
+		ERR_GACHA_NO_LIST_WEAPON=007007,//武器ガチャのリストがありません。
+		ERR_GACHA_EXE_OUT_OF_DATE=007008,//ガチャの開催期間ではありません。
+		ERR_GACHA_EXE_NO_WEAPON=007009,//武器情報が存在しません。
+		ERR_GACHA_EXE_OUT_OF_VERSION=007010,//最新のバージョンにしてください。
+		
+		//LobbyController(009)
+		ERR_LOBBY_SEARCH_ERROR=009001,//ロビー検索に失敗しました
+		ERR_LOBBY_SEARCH_NOT_FOUND=009002,//ロビーが見つかりません
+		ERR_LOBBY_CREATE_ROOM=009003,//ルーム生成に失敗しました
+		ERR_LOBBY_ROOM_INFO_EMPTY=009004,//ルームデータが存在しません
+		ERR_LOBBY_GET_NODE_SERVER=009005,//ノードーサーバー取得に失敗しました
+		
+		//PaymentController(010)
+		ERR_PAYMENT_VALIDATION_FALSE=010001,//レスポンスに不正
+		
+		//AdvancedController(011)
+		ERR_ADVANCED_PARAMETER_INVALID=011001,//不正なパラメータ
+		ERR_ADVANCED_PARAMETER_PASSWORD_NULL=011002,//パスワードが空白
+		ERR_ADVANCED_PARAMETER_PASSWORD_TOO_LONG=011003,//文字数が長い
+		ERR_ADVANCED_PARAMETER_PASSWORD_NOT_CONFIRM=011004,//不一致
+		ERR_ADVANCED_PARAMETER_PASSWORD_INVALID=011005,//現在のパスワードと一致しません
+		
+		//CityController(012)
+		ERR_CITY_CARPENTER=012001,//大工の雇用に失敗しました。
+		ERR_CITY_OBSTACLE=012002,//障害物の生成に失敗しました。
+		ERR_CITY_BUILD=012003,//建物の建築に失敗しました。
+		ERR_CITY_COMPLETE=012004,//建物の完成に失敗しました。
+		ERR_CITY_LEVELUP=012005,//建物のレベルアップに失敗しました。
+		ERR_CITY_MOVE=012006,//建物の移動に失敗しました。
+		ERR_CITY_KEEP=012007,//建物の保管に失敗しました。
+		ERR_CITY_MONEY=012008,//ゴールドの入手に失敗しました。
+		ERR_CITY_AETHER=012009,//エーテルの入手に失敗しました。
+		ERR_CITY_DESTROY=012010,//障害物の破壊に失敗しました。
+		ERR_CITY_CANCEL=012011,//キャンセルに失敗しました。
+		ERR_CITY_GREET=012012,//挨拶に失敗しました。
+		ERR_CITY_GIFT=012013,//贈り物に失敗しました。
+		ERR_CITY_FRIENDINFO=012014,//データの取得に失敗しました。
+		ERR_CITY_TALK_EVENT=012015,//イベントの更新に失敗しました。
+		ERR_CITY_EVOLUTION=012016,//覚醒に失敗しました。
+		ERR_CITY_BUILDING_NOTFOUND=012017,//マスタに存在しません。
+		ERR_CITY_NOT_BUILD=012018,//建物を建てる条件を満たしていません。
+		ERR_CITY_NO_FREESPACE=012019,//空き地ではありません。
+		ERR_CITY_NOTHING_BUILDING=012020,//建物がありません。
+		ERR_CITY_NOT_LEVELUP=012021,//建物のレベルアップの条件を満たしていません。
+		ERR_CITY_CARPENTER_MAX=012022,//大工の人数がMAXです。
+		ERR_CITY_CARPENTER_NUM=012023,//クライアントと大工の人数が一致しません。
+		ERR_CITY_UPDATE_USER_GOLD=012024,//ゴールド更新失敗です。
+		ERR_CITY_UNION_BUILDING_NOT_FOUND=012025,//合成後建物の情報が存在しません。
+		ERR_CITY_UNION_BUILDING_NOT_ENOUGH=012026,//必要な建物が不足しています。
+		ERR_CITY_UNION_GOLD_NOT_ENOUGH=012027,//ゴールドが不足しています。
+		ERR_CITY_UNION_ITEM_NOT_ENOUGH=012028,//アイテムが不足しています。
+		ERR_CITY_UNION_LIMIT_OVER=012029,//対象の取得回数上限に達しています。
+		
+		//FriendController(013)
+		ERR_FRIEND_VALIDATION_FALSE=013001,//値が不正です
+		ERR_FRIEND_FOLLOW_SET_COUNTFULL=013002,//フォロー数が上限です
+		ERR_FRIEND_FOLLOW_SET_COUNTFULL_FOLLOWER=013003,//フォロワー数が上限です
+		ERR_FRIEND_FOLLOW_SET_DB_ERROR=013004,//フォロー登録エラー
+		ERR_FRIEND_UNFOLLOW_SET_DB_ERROR=013005,//フォロー解除エラー
+		ERR_FRIEND_DELETEFOLLOWER_SET_DB_ERROR=013006,//フォロワー削除エラー
+		ERR_FRIEND_SEND_MESSAGE_DB_ERROR=013007,//メッセージ送信エラー
+		ERR_FRIEND_FOLLOW_ME=013008,//自分自身をフォローしようとしています
+		ERR_FRIEND_FOLLOW_MAX=013009,//フォロー人数が最大です
+		ERR_FRIEND_FOLLOWER_MAX=013010,//フォロワー人数が最大です
+		ERR_FRIEND_MESSAGE_DETAIL_LIST_DB_ERROR=013011,//メッセージエラー
+		
+		//CoopController(014)
+		ERR_COOP_SEARCH_NOT_FOUND_LOBBY=014001,//ロビーが見つかりません
+		ERR_COOP_PLAYING=014002,//協力プレイ中です
+		ERR_COOP_INVALID_LOCATION_PARAMETER=014003,//位置情報の取得に失敗しました。
+		ERR_COOP_CREATE_ALREADY=014103,//既にロビー生成済みです
+		ERR_COOP_CANCEL_ALREADY=014104,//ホストによってキャンセルされました
+
+		ERR_COOP_APPLY_ERR_MY=014201,//自分のロビーには申請できません
+		ERR_COOP_APPLY_ERR_ALREADY=014202,//現在申請中です
+		ERR_COOP_APPLY_ERR_ALREADY_PLAYING=014203,//既に協力バトル中です。<BR>別のパートナーを探しましょう！
+		ERR_COOP_APPLY_ERR_ALREADY_NO_SLOT=014204,//メンバーの募集は締め切られています。
+
+		ERR_COOP_CHECK_NOT_APPLIED=014301,//申請されていません
+		ERR_COOP_CHECK_PARTNER_BOX_OVERFLOW=014302,//相手のボックスがいっぱいです
+		ERR_COOP_CHECK_LACK_ACTION=014303,//スタミナが足りません
+		ERR_COOP_CHECK_LACK_PARTNER_ACTION=014304,//相手のスタミナが足りません
+
+		ERR_COOP_SERVERS_MAINTENANCE=014404,//サーバーメンテナンス中です。<BR>しばらくお待ちください
+
+		ERR_COOP_FIND_MY_LOBBY=014501,//自分のロビーです
+
+		ERR_COOP_NOT_CLEARED_ENOUGH_TUTORIAL=014601,//ロビーに参加する条件をみたしていません
+		ERR_COOP_INVALID_TOKEN_TIME_OUT=014602,//URLの期限切れです
+
+		ERR_COOP_CANCEL_CAN_NOT_CANCEL_OWNER=014701,//ロビーオーナーではないためキャンセルできません
+
+		ERR_COOP_CONTINUE_CAN_NOT_CONTINUE_IN_NOT_BATTLE=014801,//バトル中ではないため<BR>コンティニューできません
+		ERR_COOP_CONTINUE_NOT_OWNER=014802,//ロビーオーナーでないため<BR>コンティニューできません
+		ERR_COOP_OVER_MAX_CONTINUE_COUNT=014803,//コンティニュー可能上限を超えたため<BR>コンティニューできません
+
+		ERR_COOP_UPDATE_CAN_NOT_MODIFY_OWNER=014901,//ロビーオーナーではないため変更できません
+		ERR_COOP_GENERATE_QUEST_ALREADY_COMPLETE=14902,//予期せぬエラーが発生しました
+		ERR_COOP_GENERATE_QUEST_LOBBY_NO_PREPARED=14903,//予期せぬエラーが発生しました
+		ERR_COOP_NOT_ACCEPTABLE_CLIENT_VERSION=14904,//マッチング不可能なクライアントです。<BR>お互い最新バージョンに更新しましょう。
+		ERR_COOP_TOO_MANY_PARTIES=14905,//プレイ中のパーティーが多すぎます。<BR>もうしばらくお待ちください。
+
+#region China
+		ERR_COOP_QUEST_LOCKED=14908,
+#endregion
+
+		ERR_COOP_PUBLISH_ERR_NO_EXIST_QUEST=14910,//マッチング可能なクエストがありません。
+
+		//UserController(015)
+		ERR_PRESENT_RECEIVE_DB_ERROR=015001,//プレゼント受け取りエラー
+		
+		//ItemController(016)
+		ERR_ITEM_EMPTY_ITEM_ID=016001,//アイテムIDが設定されていません
+		ERR_ITEM_EMPTY_SELL_NUM=016002,//売却個数が設定されていません
+		ERR_ITEM_NOT_SELL=016003,//アイテムを売却出来ません
+		ERR_ITEM_NOT_USE=016004,//アイテムを使用出来ません
+		ERR_ITEM_SHOP_NOT_FOUND=016005,//アイテムショップに存在しません
+		ERR_ITEM_NOT_SELL_CHKADD=016006,//アイテムを売却出来ません
+		
+		//SkillController(017)
+		ERR_SKILL_NOT_FOUND_CARD=017001,//カード情報が存在しません
+		ERR_SKILL_UPDATE_ERROR=017002,//スキル解放に失敗しました
+		ERR_SKILL_LEARN_SKILL=017003,//このスキルは解放済み
+		ERR_SKILL_NOT_LEARN=017004,//このスキルは覚えられません
+		ERR_SKILL_NOT_ENOUGH_SOUL=017005,//ソウルが足りません
+		ERR_SKILL_NOT_ENOUGH_ITEM=017006,//アイテムが足りません
+		ERR_SKILL_LEARN_USE_CRYSTAL=017007,//このスキルはジュエルで覚えれません。
+		ERR_SKILL_LIMIT_BREAK_TIME_OVER=017008,//限界突破の対象期間外です
+
+		//PresentController(018)
+		ERR_PRESENT_DISTRIBUTE=018001,//プレゼントを配布できません
+
+		//UserController(019)
+		ERR_USER_SETPASSWORD_DB_ERROR=019001,//パスワード設定エラー
+		ERR_USER_CHECKPASSWORD_DB_ERROR=019002,//パスワードチェックエラー
+		ERR_USER_RESETPARENTPASS_DB_ERROR=019003,//ペアレンタルパスワード設定リセットエラー
+		ERR_USER_SETSTOPPER_DB_ERROR=019004,//ストッパー設定エラー
+		ERR_USER_RESETSTOPPER_DB_ERROR=019005,//ストッパーリセットエラー
+		ERR_USER_BIRTHDAY=019006,//誕生日登録エラー
+		ERR_USER_CRYSTAL_EMPTY=019007,//クリスタル不足エラー
+		ERR_USER_STAMINA_MAX=019008,//スタミナMAXエラー
+		ERR_USER_STAMINA_RECOVERY_FAILED=019009,//スタミナ回復エラー
+		ERR_USER_CHANGE_APPEAL_COMMENT=019010,//アピールコメント変更エラー
+		ERR_USER_CHANGE_TEAM_NAME=019011,//旅団名変更エラー
+		ERR_USER_CHANGE_NAME=019012,//ユーザ名変更エラー
+		ERR_USER_CODE_ALREADY_USED_CODE=019013,//入力された招待コードは<BR>既に使用されています。
+		ERR_USER_CODE_IS_TOO_SHORT=019014,//入力されたコードが短すぎます
+		ERR_USER_CODE_IS_TOO_LONG=019015,//入力されたコードが長すぎます
+		ERR_USER_CODE_HAS_CANNOT_USE_CHARACTER=019016,//使用できない文字が入力されています。
+		ERR_USER_CODE_NOT_FOUND=019017,//招待コードが見つかりませんでした<BR>ご確認の上、再度ご入力ください
+		ERR_USER_LOGINBONUS=019018,//ログインボーナスエラー
+		ERR_USER_ALREADY_EXIST_INVITE_CODE=019019,//すでにコードを登録しています。
+
+		//AchievementController(020)
+		ERR_ACHIEVEMENT_EMPTY_PARAM=020001,//通信エラーが発生しました。
+		ERR_ACHIEVEMENT_EMPTY_DATA=020002,//通信エラーが発生しました。
+		ERR_ACHIEVEMENT_ALREADY_UPLOADED=020003,//通信エラーが発生しました。
+		ERR_ACHIEVEMENT_UPLOAD_FAILED=020004,//通信エラーが発生しました。
+		ERR_ACHIEVEMENT_REWARD_DATA=020005,//通信エラーが発生しました。
+
+		ERR_SERIAL_EMPTY_ID=021001,//通信エラーが発生しました。
+		ERR_SERIAL_EMPTY_CODE=021002,//シリアルコードを入力してください
+		ERR_SERIAL_NOT_INPUT_PERIOD=021003,//シリアルコードの有効期間外です
+		ERR_SERIAL_INPUT_LOCK=021004,//一定回数入力を誤ったため入力できません しばらく時間をおいて入力してください
+		ERR_SERIAL_CODE_IS_INVALID=021005,//シリアルコードが見つかりません ご確認の上、再度お試しください
+		ERR_SERIAL_CODE_IS_ALREADY_USED=021006,//すでに利用されたシリアルコードです.
+
+		ERR_OPINION_EMPTY_MSG=022001,//ご意見が未入力です
+		ERR_OPINION_CREATE=022002,//ご意見の登録に失敗しました
+
+		//
+		ERR_TOWN_MISSION_COMPLETE_RECEIVED=023001,//達成リクエストされたタウンミッションは、達成済みです。
+
+
+        //AreaController(024)
+        ERR_NEW_GAME_NO_EXIST_CAMPAIGN=024001,//リセットの対象期間外です
+        ERR_NEW_GAME_PREMISE_AREA_NOT_CLEAR=024002,//リセットの条件を満たしていません
+        ERR_NEW_GAME_LIMIT_OVER=024003,//リセット回数の上限に達しています
+        ERR_NEW_GAME_REQUIRE_ADVANCED_USER=024004,//アドバンスユーザー登録が必要です
+
+		ERR_EXPLORE_SHORTEN_FAILED=025010,//派遣時間短縮に失敗しました。
+		ERR_EXPLORE_INVALID_PARAM=025011,//リクエストパラメーターが不正です。
+		ERR_EXPLORE_CRYSTAL_INVALID=025012,//利用ジュエルが不正です。
+		
+		//NodeServer(099)
+		ERR_NODE_MAX_LIMIT=099001,//ルームの最大人数を超えています
+
+		#region China 
+
+		//扫荡关卡时可能抛出的错误
+		ERR_QUEST_EMPTY_AUTO_BATTLE_TIMES=1005001,//扫荡次数不足。
+		ERR_QUEST_EMPTY_AUTO_BATTLE_TICKET=1005002,//扫荡券不足。
+		ERR_QUEST_AUTO_BATTLE_DISABLED=1005003,//此关卡不支持扫荡。
+		ERR_QUEST_EMPTY_QUEST_AUTO_BATTLE_TIMES=1005004,//此关卡当日扫荡次数已用完。
+		ERR_QUEST_EMPTY_EVENT_LOCATION_BATTLE_TIMES=1005005,//此关卡当日战斗次数已用完。
+
+		//PVP 购买时可能抛出的错误
+		ERRO_BUY_FIGHT = 1050001,	//购买回复点失败
+		ERROR_BUY_RECOVER_POINT = 1050002,	//购买挑战次数失败
+		ERROR_FIGHTER_INFO_EXPIRED = 1050003,	//玩家数据已经更新
+		ERROR_NOT_EXIT_FIGHTING = 1050004,	//不存在进行中的比赛
+		ERROR_BEING_CHALLENGED = 1050005,	//正在被挑战
+		ERROR_REVENGE_EXPIRED = 1050006,	//复仇已经过期
+		ERROR_REVENGE_OVER_RANGE = 1050007,	//复仇超出可匹配范围
+
+		#endregion
+
+		#region China Vip
+		ERR_VIP_GIFTPACK_INSUFFICIENT_VIPLEVEL = 1995001,//VIP等级不足
+		ERR_VIP_GIFTPACK_ALREADY_PURCHASED = 1995002,//您已经购买过该礼包
+		ERR_VIP_GFITPACK_PURCHASE_FAILED = 1995003,//礼包购买失败
+		ERR_CITY_CRYSTAL_TO_MONEY = 012995,//宝石兑换金币失败。
+		ERR_CITY_UPDATE_USER_CRYSTAL_TO_MONEY = 012994,//宝石兑换金币更新失败。
+		ERR_CITY_START_CAFE = 012993,//开始咖啡失败
+		ERR_CITY_HAVEST_CAFE = 012992,//结束咖啡失败
+		ERR_CITY_CAFE_INFO = 012991,//结束咖啡失败
+		#endregion
+	
+		#region China For Debris
+		ERROR_FRAGMENT_CARD_COMBINE=1051001,//合成卡牌失败
+		ERROR_FRAGMENT_RAINBOW_COMBINE=1051002,//合成彩虹石失败
+		ERROR_FRAGMENT_WEAPON_COMBINE=1051003,//合成武器失败
+		#endregion
+
+		// #if ACT_ACTIVATION_CODE
+		#region China Add For激活码活动
+		ERR_ACTIVATION_NOT_NEED_ACTIVATION=1993001,	//不需要激活
+		ERR_ACTIVATION_CODE_NOT_EXIST=1993002,		//激活码不存在
+		ERR_ACTIVATION_ALREADY_ACTIVATED=1993003,	//用户已经激活
+		ERR_ACTIVATION_CODE_USED=1993004,			//激活码已经被使用
+		ERR_ACTIVATION_PLATFORMID_ERROR=1993005,	//激活码和渠道不符合
+		ERR_ACTIVATION_ACTIVATION_FAILED=1993006,	//激活失败
+		#endregion
+		// #endif
+
+		#region China Add For 礼包码
+		ERR_GIFTCODE_CODE_NOT_EXIST=1992001,		//礼包码不存在
+		ERR_GIFTCODE_ALREADY_TAKEN=1992002,			//用户已经达到领完次数
+		ERR_GIFTCODE_CODE_USED=1992003, 			//礼包码已经被使用
+		ERR_GIFTCODE_GIFT_CODE_FAILED=1992004,		//使用礼包码失败
+		ERR_GIFTCODE_CAMPAIGN_TIME_OUT=1992005,		//不在活动期间
+		#endregion
+
+		#region China Guild
+		ERR_GUILD_EMPTY_PARAM = 026001,			//公会缺少参数
+		ERR_GUILD_NOT_ENOUGH_LEVEL = 026002,	//用户等级不足
+		ERR_GUILD_ALREADY_IN_GUILD = 026003,	//已经在一个公会中
+		ERR_GUILD_NOT_IN_GUILD = 026004,		//还没有加入任何公会
+		ERR_GUILD_QUIT_RECENTLY = 026005,		//最近刚刚退出过公会
+		ERR_GUILD_ALREADY_APPLIED = 026006,		//已经申请加入
+		ERR_GUILD_NOT_APPLIED = 026007,			//没有申请加入公会
+		ERR_GUILD_GUILD_NOT_EXIST = 026008,		//指定的公会不存在
+		ERR_GUILD_INVALID_VALUE = 026009,		//数据出错
+		ERR_GUILD_GUILD_IS_FULL = 026010,		//公会已经满员
+		ERR_GUILD_USER_LEVEL_TOO_LOW = 026011,	//玩家等级不足
+		ERR_GUILD_USER_NO_AUTHORITY = 026012,	//玩家没有权限进行操作
+		ERR_GUILD_TARGET_NOT_EXIST = 026013,	//目标操作对象不存在
+		ERR_GUILD_TARGET_ERR_PARAM = 027014,	//逻辑错误的参数
+		ERR_GUILD_NOT_AVAILABLE_HEIR = 027015,	//退出公会时没有选到合法的继承人
+		ERR_GUILD_REQUEST_OUT_OF_DATE = 027016,	//请求超时
+		ERR_GUILD_ANNOUNCEMENT_TOO_LONG = 027017,//公告超过文字上限
+		ERR_REGISTER_INVALID_EMAIL=1003003,
+		ERR_GUILD_NAME_USED=023000,				 // 公会名称被使用
+		ERR_GUILD_INVALID_CHARA=27022,			 // 非法字符
+		#endregion
+	}
+}
